@@ -1,39 +1,41 @@
-import type { Metadata } from "next"
-import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
-import { ModeToggle } from "@/components/mode-toggle"
+import type { Metadata } from 'next'
+import { DM_Sans } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/providers/theme-provider'
+// import { ClerkProvider } from '@clerk/nextjs'
+import ModalProvider from '@/providers/modal-provider'
+import { Toaster } from '@/components/ui/sonner'
+import { BillingProvider } from '@/providers/billing-provider'
+
+const font = DM_Sans({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Articulo",
-  description: "High-Performance SaaS Automation Builder",
+  title: 'Articulo.',
+  description: 'Automate Your Work With Articulo.',
 }
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-background text-foreground transition-colors duration-300">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {/* Navbar */}
-          <header className="flex items-center justify-between px-6 py-4 border-b border-border">
-            <h1 className="text-xl font-bold">Articulo</h1>
-            <ModeToggle />
-          </header>
-
-          {/* Main content */}
-          <main className="p-6 min-h-screen">
-            {children}
-          </main>
-        </ThemeProvider>
-      </body>
-    </html>
+      <html lang="en">
+        <body className={font.className}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <BillingProvider>
+              <ModalProvider>
+                {children}
+                <Toaster />
+              </ModalProvider>
+            </BillingProvider>
+          </ThemeProvider>
+        </body>
+      </html>
   )
 }
