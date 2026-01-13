@@ -1,8 +1,8 @@
-import { CardBody, CardContainer, CardItem } from '@/components/ui/3d-card'
-import { HeroParallax } from '@/components/ui/hero-parallax'
-import { ContainerScroll } from '@/components/ui/container-scroll-animation'
-import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards'
-import { LampComponent } from '@/components/ui/lamp'
+import { CardBody, CardContainer, CardItem } from '@/components/global/3d-card'
+import { HeroParallax } from '@/components/global/connect-parallax'
+import { ContainerScroll } from '@/components/global/container-scroll-animation'
+import { InfiniteMovingCards } from '@/components/global/infinite-moving-cards'
+import { LampComponent } from '@/components/global/lamp'
 import Navbar from '@/components/global/navbar'
 import { Button } from '@/components/ui/button'
 import { clients, products } from '@/lib/constant'
@@ -29,14 +29,11 @@ export default function Home() {
                   </span>
                 </Button>
                 <h1 className="text-5xl md:text-8xl  bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-600 font-sans font-bold">
-                  Automate Your Work With Fuzzie
+                  Automate Your Work With Articulo
                 </h1>
               </div>
             }
-          >
-            {/* Pass children here */}
-            <div></div>
-          </ContainerScroll>
+          />
         </div>
       </section>
       <InfiniteMovingCards
