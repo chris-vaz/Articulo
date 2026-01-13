@@ -36,161 +36,116 @@ export default function Home() {
           />
         </div>
       </section>
-      <InfiniteMovingCards
-        className="md:mt-[18rem] mt-[-100px]"
-        items={clients}
-        direction="right"
-        speed="slow"
-      />
-      <section>
-        <HeroParallax products={products}></HeroParallax>
-      </section>
-      <section className="mt-[-500px]">
-        <LampComponent />
-        <div className="flex flex-wrap items-center justify-center flex-col md:flex-row gap-8 -mt-72">
-          <CardContainer className="inter-var ">
-            <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-neutral-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full md:!w-[350px] h-auto rounded-xl p-6 border">
-              <CardItem
-                translateZ="50"
-                className="text-xl font-bold text-neutral-600 dark:text-white "
-              >
-                Hobby
-                <h2 className="text-6xl ">$0</h2>
-              </CardItem>
-              <CardItem
-                translateZ="60"
-                className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-              >
-                Get a glimpse of what our software is capable of. Just a heads
-                up {"you'll"} never leave us after this!
-                <ul className="my-4 flex flex-col gap-2">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />3 Free automations
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    100 tasks per month
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    Two-step Actions
-                  </li>
-                </ul>
-              </CardItem>
-              <div className="flex justify-between items-center mt-8">
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-                >
-                  Try now →
-                </CardItem>
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-                >
-                  Get Started Now
-                </CardItem>
-              </div>
-            </CardBody>
-          </CardContainer>
-          <CardContainer className="inter-var ">
-            <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-neutral-500/[0.1] dark:bg-black dark:border-[#E2CBFF] border-black/[0.1] w-full md:!w-[350px] h-auto rounded-xl p-6 border">
-              <CardItem
-                translateZ="50"
-                className="text-xl font-bold text-neutral-600 dark:text-white "
-              >
-                Pro Plan
-                <h2 className="text-6xl ">$29</h2>
-              </CardItem>
-              <CardItem
-                translateZ="60"
-                className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-              >
-                Get a glimpse of what our software is capable of. Just a heads
-                up {"you'll"} never leave us after this!
-                <ul className="my-4 flex flex-col gap-2">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />3 Free automations
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    100 tasks per month
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    Two-step Actions
-                  </li>
-                </ul>
-              </CardItem>
-              <div className="flex justify-between items-center mt-8">
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-                >
-                  Try now →
-                </CardItem>
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-                >
-                  Get Started Now
-                </CardItem>
-              </div>
-            </CardBody>
-          </CardContainer>
-          <CardContainer className="inter-var ">
-            <CardBody className="bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-neutral-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full md:!w-[350px] h-auto rounded-xl p-6 border">
-              <CardItem
-                translateZ="50"
-                className="text-xl font-bold text-neutral-600 dark:text-white "
-              >
-                Unlimited
-                <h2 className="text-6xl ">$99</h2>
-              </CardItem>
-              <CardItem
-                translateZ="60"
-                className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300"
-              >
-                Get a glimpse of what our software is capable of. Just a heads
-                up {"you'll"} never leave us after this!
-                <ul className="my-4 flex flex-col gap-2">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />3 Free automations
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    100 tasks per month
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon />
-                    Two-step Actions
-                  </li>
-                </ul>
-              </CardItem>
-              <div className="flex justify-between items-center mt-8">
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl text-xs font-normal dark:text-white"
-                >
-                  Try now →
-                </CardItem>
-                <CardItem
-                  translateZ={20}
-                  as="button"
-                  className="px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold"
-                >
-                  Get Started Now
-                </CardItem>
-              </div>
-            </CardBody>
-          </CardContainer>
+
+      {/* Additional Content Section - Now Visible */}
+      <section className="w-full bg-neutral-950 relative py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center text-white mb-8 md:mb-12 px-4">
+            Trusted by Leading Companies
+          </h2>
+          <InfiniteMovingCards items={clients} direction="right" speed="slow" />
         </div>
       </section>
+
+      {/* You can add more sections here */}
+      <section className="w-full bg-neutral-900 relative py-20 px-4">
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-14">
+            <h2 className="text-white text-3xl md:text-5xl font-bold mb-4">
+              Pricing
+            </h2>
+            <p className="text-neutral-400 text-lg">
+              Simple pricing that scales with you.
+            </p>
+          </div>
+
+          {/* Pricing cards */}
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free / Starter */}
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-8 flex flex-col">
+              <h3 className="text-white text-2xl font-semibold mb-2">
+                Starter
+              </h3>
+              <p className="text-neutral-400 mb-6">
+                Perfect for trying out Articulo.
+              </p>
+
+              <div className="text-white text-5xl font-bold mb-6">
+                $0
+                <span className="text-base font-medium text-neutral-400">
+                  /month
+                </span>
+              </div>
+
+              <ul className="space-y-3 text-neutral-300 flex-1">
+                <li>✔ 3 automations</li>
+                <li>✔ 100 tasks per month</li>
+                <li>✔ Basic integrations</li>
+                <li>✔ Community support</li>
+              </ul>
+
+              <button className="mt-8 w-full rounded-full bg-white text-black py-3 font-semibold transition hover:bg-neutral-200">
+                Get Started
+              </button>
+            </div>
+
+            {/* Pro */}
+            <div className="rounded-2xl border border-neutral-700 bg-neutral-900 p-8 flex flex-col relative">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-1 text-sm font-semibold text-black">
+                Most Popular
+              </span>
+
+              <h3 className="text-white text-2xl font-semibold mb-2">
+                Pro
+              </h3>
+              <p className="text-neutral-400 mb-6">
+                For teams automating serious workflows.
+              </p>
+
+              <div className="text-white text-5xl font-bold mb-6">
+                $29
+                <span className="text-base font-medium text-neutral-400">
+                  /month
+                </span>
+              </div>
+
+              <ul className="space-y-3 text-neutral-300 flex-1">
+                <li>✔ Unlimited automations</li>
+                <li>✔ 10,000 tasks per month</li>
+                <li>✔ Advanced integrations</li>
+                <li>✔ Priority support</li>
+              </ul>
+
+              <button className="mt-8 w-full rounded-full bg-white text-black py-3 font-semibold transition hover:bg-neutral-200">
+                Start Pro Trial
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer className="w-full bg-neutral-950 border-t border-neutral-800 px-4 py-16">
+        <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-6">
+          <h3 className="text-white text-2xl md:text-4xl font-bold">
+            Ready to automate your workflow?
+          </h3>
+
+          <p className="text-neutral-400 max-w-xl">
+            Start building powerful automations with Articulo in minutes.
+            No credit card required.
+          </p>
+
+          <button className="mt-4 rounded-full bg-white px-10 py-4 text-black text-lg font-semibold transition hover:bg-neutral-200">
+            Get Started Now
+          </button>
+
+          <div className="mt-12 text-sm text-neutral-500">
+            © {new Date().getFullYear()} Articulo. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
+
     </main>
   )
 }

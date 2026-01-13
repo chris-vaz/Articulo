@@ -8,6 +8,19 @@
   box-sizing: border-box;
 }
 
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 2.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 20s) var(--animation-direction, forwards) linear infinite;
+}
+
 *::-webkit-scrollbar {
   display: none !important;
 }

@@ -1,60 +1,89 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
-import { MenuIcon } from 'lucide-react'
-// import { UserButton, currentUser } from '@clerk/nextjs'
+"use client"
 
-type Props = {}
+import Image from "next/image"
+import Link from "next/link"
+import React, { useEffect, useState } from "react"
+import { MenuIcon } from "lucide-react"
 
-const Navbar = async (props: Props) => {
-  // const user = await currentUser()
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
   return (
-    <header className="fixed right-0 left-0 top-0 py-4 px-4 bg-black/40 backdrop-blur-lg z-[100] flex items-center border-b-[1px] border-neutral-900 justify-between">
-      <aside className="flex items-center gap-[2px]">
-        <p className="text-3xl font-bold">Fu</p>
-        <Image
-          src="/fuzzieLogo.png"
-          width={15}
-          height={15}
-          alt="fuzzie logo"
-          className="shadow-sm"
-        />
-        <p className="text-3xl font-bold">zie</p>
+    <header
+      className={`
+    fixed top-0 left-0 right-0 z-[100]
+    flex items-center justify-between px-4 py-4
+    transition-all duration-300
+    ${scrolled
+          ? "bg-white/40 backdrop-blur-lg text-black"
+          : "bg-black/40 backdrop-blur-lg text-white"
+        }
+  `}
+    >
+      {/* Logo */}
+      <aside className="flex items-center gap-2">
+        <p className="text-3xl font-bold">Articulo</p>
       </aside>
-      <nav className="absolute left-[50%] top-[50%] transform translate-x-[-50%] translate-y-[-50%] hidden md:block">
-        <ul className="flex items-center gap-4 list-none">
-          <li>
-            <Link href="#">Products</Link>
-          </li>
-          <li>
-            <Link href="#">Pricing</Link>
-          </li>
-          <li>
-            <Link href="#">Clients</Link>
-          </li>
-          <li>
-            <Link href="#">Resources</Link>
-          </li>
-          <li>
-            <Link href="#">Documentation</Link>
-          </li>
-          <li>
-            <Link href="#">Enterprise</Link>
-          </li>
+
+      {/* Center Nav */}
+      <nav className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+        <ul className="flex items-center gap-6">
+          {[
+            "Products",
+            "Pricing",
+            "Clients",
+            "Resources",
+            "Documentation",
+            "Enterprise",
+          ].map((item) => (
+            <li key={item}>
+              <Link
+                href="#"
+                className={`transition-colors ${scrolled
+                  ? "text-black hover:text-neutral-600"
+                  : "text-white hover:text-neutral-300"
+                  }`}
+              >
+                {item}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
+
+      {/* Right Actions */}
       <aside className="flex items-center gap-4">
         <Link
           href="/dashboard"
-          className="relative inline-flex h-10 overflow-hidden rounded-full p-[2px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+          className="relative inline-flex h-10 overflow-hidden rounded-full p-[2px]"
         >
-          <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-          <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-950 px-3 py-1 text-sm font-medium text-white backdrop-blur-3xl">
+          {/* Animated border */}
+          <span className="absolute inset-[-1000%] z-0 animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+
+          {/* Button content */}
+          <span
+            className={`relative z-10 inline-flex h-full w-full items-center justify-center rounded-full px-4 text-sm font-medium transition-colors ${scrolled
+              ? "bg-black text-white"
+              : "bg-slate-950 text-white"
+              }`}
+          >
             Get Started
           </span>
         </Link>
-        user
-        <MenuIcon className="md:hidden" />
+
+        <MenuIcon
+          className={`md:hidden ${scrolled ? "text-black" : "text-white"
+            }`}
+        />
       </aside>
     </header>
   )
