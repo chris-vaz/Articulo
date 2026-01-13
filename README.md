@@ -20,7 +20,7 @@ Built with a modern, high-performance tech stack, this project demonstrates the 
 ### 🛠️ Tech Stack
 - Framework: Next.js 14 (App Router)
 
-- Runtime: Bun
+- Runtime: npm
 
 - Authentication: Clerk
 
