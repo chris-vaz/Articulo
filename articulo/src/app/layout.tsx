@@ -1,8 +1,9 @@
+'use client'
 import type { Metadata } from 'next'
 import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/providers/theme-provider'
-// import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
 import ModalProvider from '@/providers/modal-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { BillingProvider } from '@/providers/billing-provider'
@@ -20,6 +21,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
+    <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={font.className}>
           <ThemeProvider
@@ -37,5 +39,6 @@ export default function RootLayout({
           </ThemeProvider>
         </body>
       </html>
+    </ClerkProvider>
   )
 }

@@ -1,15 +1,17 @@
-import ProfileForm from '@/components/forms/profile-form'
 import React from 'react'
-
-type Props = {}
+import ProfileForm from '@/components/forms/profile-form'
+import ProfilePictureClient from '@/components/global/profile-picture.client'
 
 const Settings = async () => {
-  
+  // Later this will come from Prisma / Clerk
+  const userImage: string | null = null
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="sticky top-0 z-[10] flex items-center justify-between border-b bg-background/50 p-6 text-4xl backdrop-blur-lg">
         <span>Settings</span>
       </h1>
+
       <div className="flex flex-col gap-10 p-6">
         <div>
           <h2 className="text-2xl font-bold">User Profile</h2>
@@ -17,8 +19,12 @@ const Settings = async () => {
             Add or update your information
           </p>
         </div>
-        Profile Form
-        <ProfileForm/>
+
+        {/* Profile Picture */}
+        <ProfilePictureClient userImage={userImage} />
+
+        {/* Profile Form */}
+        <ProfileForm />
       </div>
     </div>
   )
