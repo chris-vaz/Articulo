@@ -45,8 +45,10 @@ if (env.DATABASE_URL) {
     console.log('DATABASE_URL not found in .env')
 }
 
-// Initialize without args, letting it read process.env
-const prisma = new PrismaClient()
+console.log('Raw DATABASE_URL from process.env:', JSON.stringify(process.env.DATABASE_URL))
+
+// Standard PrismaClient using DATABASE_URL directly (binary engine forced via PRISMA_CLIENT_ENGINE_TYPE=binary)
+const prisma = new PrismaClient({})
 
 async function main() {
     try {
