@@ -24,7 +24,7 @@ const ProfileForm = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-6 max-w-md"
+      className="flex max-w-md flex-col gap-6"
     >
       {/* Name */}
       <div className="flex flex-col gap-2">
@@ -33,6 +33,7 @@ const ProfileForm = () => {
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="focus-visible:ring-2 focus-visible:ring-[#2F006B]"
         />
       </div>
 
@@ -44,18 +45,22 @@ const ProfileForm = () => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="focus-visible:ring-2 focus-visible:ring-[#2F006B]"
         />
       </div>
 
       {/* Submit */}
       <Button
         type="submit"
+        disabled={isLoading}
         className="
-    self-start
-    bg-white text-black
-    hover:bg-[#2F006B] hover:text-white
-    transition-colors
-  "
+          self-start
+          bg-white text-black
+          hover:bg-[#2F006B] hover:text-white
+          transition-colors
+          disabled:cursor-not-allowed
+          disabled:opacity-70
+        "
       >
         {isLoading ? (
           <>

@@ -1,11 +1,15 @@
 "use client"
 
+import { UserButton, useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { MenuIcon } from "lucide-react"
 
-const Navbar = () => {
+type Props = {}
+
+const Navbar = (props: Props) => {
+  const { user, isLoaded } = useUser()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -20,14 +24,14 @@ const Navbar = () => {
   return (
     <header
       className={`
-    fixed top-0 left-0 right-0 z-[100]
-    flex items-center justify-between px-4 py-4
-    transition-all duration-300
-    ${scrolled
+        fixed top-0 left-0 right-0 z-[100]
+        flex items-center justify-between px-4 py-4
+        transition-all duration-300
+        ${scrolled
           ? "bg-white/40 backdrop-blur-lg text-black"
           : "bg-black/40 backdrop-blur-lg text-white"
         }
-  `}
+      `}
     >
       {/* Logo */}
       <aside className="flex items-center gap-2">
@@ -49,8 +53,8 @@ const Navbar = () => {
               <Link
                 href="#"
                 className={`transition-colors ${scrolled
-                  ? "text-black hover:text-neutral-600"
-                  : "text-white hover:text-neutral-300"
+                    ? "text-black hover:text-neutral-600"
+                    : "text-white hover:text-neutral-300"
                   }`}
               >
                 {item}
@@ -62,29 +66,38 @@ const Navbar = () => {
 
       {/* Right Actions */}
       <aside className="flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="relative inline-flex h-10 overflow-hidden rounded-full p-[2px]"
-        >
-          {/* Animated border */}
-          <span className="absolute inset-[-1000%] z-0 animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+        {isLoaded && (
+          <>
+            <Link
+              href={user ? "/dashboard" : "/sign-in"}
+              className="group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full p-[2px]"
+            >
+              {/* Animated gradient border */}
+              <span
+                aria-hidden
+                className="absolute inset-0
+          bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]"
+              />
 
-          {/* Button content */}
-          <span
-            className={`relative z-10 inline-flex h-full w-full items-center justify-center rounded-full px-4 text-sm font-medium transition-colors ${scrolled
-              ? "bg-black text-white"
-              : "bg-slate-950 text-white"
-              }`}
-          >
-            Get Started
-          </span>
-        </Link>
+              {/* Button content */}
+              <span
+                className="relative z-10 inline-flex h-full w-full items-center justify-center
+          rounded-full bg-slate-950 px-5 text-sm font-medium text-white
+          transition-colors group-hover:bg-slate-900"
+              >
+                {user ? "Dashboard" : "Get Started"}
+              </span>
+            </Link>
+
+            {user && <UserButton afterSignOutUrl="/" />}
+          </>
+        )}
 
         <MenuIcon
-          className={`md:hidden ${scrolled ? "text-black" : "text-white"
-            }`}
+          className={`md:hidden ${scrolled ? "text-black" : "text-white"}`}
         />
       </aside>
+
     </header>
   )
 }
