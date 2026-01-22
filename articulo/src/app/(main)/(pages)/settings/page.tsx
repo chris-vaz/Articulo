@@ -65,15 +65,12 @@ const Settings = async (props: Props) => {
             Add or update your information
           </p>
         </div>
-        {/* <ProfilePicture
+        <ProfilePicture
           onDelete={removeProfileImage}
           userImage={user?.profileImage || ''}
           onUpload={uploadProfileImage}
-        /> */}
-        {/* <ProfileForm
-          user={user}
-          onUpdate={updateUserInfo}
-        /> */}
+        />
+        <ProfileForm/>
       </div>
     </div>
   )
