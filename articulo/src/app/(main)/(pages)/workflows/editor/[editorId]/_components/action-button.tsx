@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { postContentToWebHook } from '@/app/(main)/(pages)/connections/_actions/discord-connection'
 import { onCreateNodeTemplate } from '../../../_actions/workflow-connections'
 import { toast } from 'sonner'
-import { onCreateNewPageInDatabase } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
+// import { onCreateNewPageInDatabase } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
 import { postMessageToSlack } from '@/app/(main)/(pages)/connections/_actions/slack-connection'
 
 type Props = {
@@ -44,17 +44,17 @@ const ActionButton = ({
       nodeConnection.notionNode.accessToken,
       nodeConnection.notionNode.content
     )
-    const response = await onCreateNewPageInDatabase(
-      nodeConnection.notionNode.databaseId,
-      nodeConnection.notionNode.accessToken,
-      nodeConnection.notionNode.content
-    )
-    if (response) {
-      nodeConnection.setNotionNode((prev: any) => ({
-        ...prev,
-        content: '',
-      }))
-    }
+    // const response = await onCreateNewPageInDatabase(
+    //   nodeConnection.notionNode.databaseId,
+    //   nodeConnection.notionNode.accessToken,
+    //   nodeConnection.notionNode.content
+    // )
+    // if (response) {
+    //   nodeConnection.setNotionNode((prev: any) => ({
+    //     ...prev,
+    //     content: '',
+    //   }))
+    // }
   }, [nodeConnection.notionNode])
 
   const onStoreSlackContent = useCallback(async () => {

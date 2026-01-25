@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import axios from 'axios'
-import { getGoogleListener } from '../../../_actions/workflow-connections'
+// import { getGoogleListener } from '../../../_actions/workflow-connections'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription } from '@/components/ui/card'
 import { CardContainer } from '@/components/global/3d-card'
@@ -24,16 +24,16 @@ const GoogleDriveFiles = (props: Props) => {
     setIsListening(false)
   }
 
-  const onListener = async () => {
-    const listener = await getGoogleListener()
-    if (listener?.googleResourceId !== null) {
-      setIsListening(true)
-    }
-  }
+  // const onListener = async () => {
+  //   const listener = await getGoogleListener()
+  //   if (listener?.googleResourceId !== null) {
+  //     setIsListening(true)
+  //   }
+  // }
 
-  useEffect(() => {
-    onListener()
-  }, [])
+  // useEffect(() => {
+  //   onListener()
+  // }, [])
 
   return (
     <div className="flex flex-col gap-3 pb-6">
