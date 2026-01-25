@@ -303,7 +303,13 @@ const EditorCanvas = (props: Props) => {
             </svg>
           </div>
         ) : (
-          <EditorCanvasSidebar nodes={state.editor.elements}/>
+          // <FlowInstance
+          //   edges={edges}
+          //   nodes={nodes}
+          // >
+            <EditorCanvasSidebar nodes={state.editor.elements} />
+          // </FlowInstance>
+
         )}
       </ResizablePanel>
     </ResizablePanelGroup>
