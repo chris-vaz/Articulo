@@ -3,22 +3,22 @@ import { Option } from '@/components/ui/multiple-selector'
 import { db } from '@/lib/db'
 import { auth, currentUser } from '@clerk/nextjs/server'
 
-// export const getGoogleListener = async () => {
-//   const { userId } = auth()
+export const getGoogleListener = async () => {
+  const { userId } = await auth()
 
-//   if (userId) {
-//     const listener = await db.user.findUnique({
-//       where: {
-//         clerkId: userId,
-//       },
-//       select: {
-//         googleResourceId: true,
-//       },
-//     })
+  if (!userId) return null
 
-//     if (listener) return listener
-//   }
-// }
+  const listener = await db.user.findUnique({
+    where: {
+      clerkId: userId,
+    },
+    select: {
+      googleResourceId: true,
+    },
+  })
+
+  return listener
+}
 
 export const onFlowPublish = async (workflowId: string, state: boolean) => {
   console.log(state)
