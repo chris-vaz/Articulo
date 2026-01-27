@@ -33,6 +33,7 @@ import { onGetNodesEdges } from '../../../_actions/workflow-connections'
 type Props = {}
 
 const initialNodes: EditorNodeType[] = []
+
 const initialEdges: { id: string; source: string; target: string }[] = []
 
 const EditorCanvas = (props: Props) => {
@@ -77,7 +78,10 @@ const EditorCanvas = (props: Props) => {
         'application/reactflow'
       )
 
-      if (typeof type === 'undefined' || !type) return
+      // check if the dropped element is valid
+      if (typeof type === 'undefined' || !type) {
+        return
+      }
 
       const triggerAlreadyExists = state.editor.elements.find(
         (node) => node.type === 'Trigger'
@@ -88,6 +92,9 @@ const EditorCanvas = (props: Props) => {
         return
       }
 
+      // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
+      // and you don't need to subtract the reactFlowBounds.left/top anymore
+      // details: https://reactflow.dev/whats-new/2023-11-10
       if (!reactFlowInstance) return
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
@@ -158,56 +165,12 @@ const EditorCanvas = (props: Props) => {
 
   const onGetWorkFlow = async () => {
     setIsWorkFlowLoading(true)
-    // const response = await onGetNodesEdges(pathname.split('/').pop()!)
-    // if (response) {
-    //   setEdges(JSON.parse(response.edges!))
-    //   setNodes(JSON.parse(response.nodes!))
-    // }
-    setNodes([
-      {
-        id: 'node-1',
-        type: 'Trigger',
-        position: { x: 0, y: 0 },
-        data: {
-          title: 'Trigger',
-          description: 'An event that starts the workflow.',
-          completed: false,
-          current: false,
-          metadata: {},
-          type: 'Trigger',
-        },
-      },
-      {
-        id: 'node-2',
-        type: 'Email',
-        position: { x: 0, y: 200 },
-        data: {
-          title: 'Email',
-          description: 'Send and email to a user',
-          completed: false,
-          current: false,
-          metadata: {},
-          type: 'Email',
-        },
-      },
-      {
-        id: 'node-3',
-        type: 'Slack',
-        position: { x: 0, y: 400 },
-        data: {
-          title: 'Slack',
-          description: 'Send a notification to slack',
-          completed: false,
-          current: false,
-          metadata: {},
-          type: 'Slack',
-        },
-      },
-    ])
-    setEdges([
-      { id: 'edge-1', source: 'node-1', target: 'node-2' },
-      { id: 'edge-2', source: 'node-2', target: 'node-3' },
-    ])
+    const response = await onGetNodesEdges(pathname.split('/').pop()!)
+    if (response) {
+      setEdges(JSON.parse(response.edges!))
+      setNodes(JSON.parse(response.nodes!))
+      setIsWorkFlowLoading(false)
+    }
     setIsWorkFlowLoading(false)
   }
 
@@ -217,8 +180,7 @@ const EditorCanvas = (props: Props) => {
 
   return (
     <ResizablePanelGroup direction="horizontal">
-      {/* Left Canvas Panel */}
-      <ResizablePanel minSize={50} defaultSize={70}>
+      <ResizablePanel defaultSize={70}>
         <div className="flex h-full items-center justify-center">
           <div
             style={{ width: '100%', height: '100%', paddingBottom: '70px' }}
@@ -226,7 +188,6 @@ const EditorCanvas = (props: Props) => {
           >
             {isWorkFlowLoading ? (
               <div className="absolute flex h-full w-full items-center justify-center">
-                {/* Loading Spinner */}
                 <svg
                   aria-hidden="true"
                   className="inline h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
@@ -277,14 +238,13 @@ const EditorCanvas = (props: Props) => {
           </div>
         </div>
       </ResizablePanel>
-
       <ResizableHandle />
-
-      {/* Right Sidebar Panel */}
-      <ResizablePanel minSize={25} defaultSize={30} className="relative sm:block">
+      <ResizablePanel
+        defaultSize={40}
+        className="relative sm:block"
+      >
         {isWorkFlowLoading ? (
           <div className="absolute flex h-full w-full items-center justify-center">
-            {/* Loading Spinner (duplicate for sidebar) */}
             <svg
               aria-hidden="true"
               className="inline h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
@@ -303,13 +263,12 @@ const EditorCanvas = (props: Props) => {
             </svg>
           </div>
         ) : (
-          // <FlowInstance
-          //   edges={edges}
-          //   nodes={nodes}
-          // >
-            <EditorCanvasSidebar nodes={state.editor.elements} />
-          // </FlowInstance>
-
+          <FlowInstance
+            edges={edges}
+            nodes={nodes}
+          >
+            <EditorCanvasSidebar nodes={nodes} />
+          </FlowInstance>
         )}
       </ResizablePanel>
     </ResizablePanelGroup>
