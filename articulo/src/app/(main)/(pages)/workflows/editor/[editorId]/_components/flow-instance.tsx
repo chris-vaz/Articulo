@@ -36,33 +36,35 @@ const FlowInstance = ({ children, edges, nodes }: Props) => {
     if (response) toast.message(response)
   }, [])
 
-  // const onAutomateFlow = async () => {
-  //   const flows: any = []
-  //   const connectedEdges = edges.map((edge) => edge.target)
-  //   connectedEdges.map((target) => {
-  //     nodes.map((node) => {
-  //       if (node.id === target) {
-  //         flows.push(node.type)
-  //       }
-  //     })
-  //   })
+  const onAutomateFlow = async () => {
+    const flows: any = []
+    const connectedEdges = edges.map((edge) => edge.target)
+    connectedEdges.map((target) => {
+      nodes.map((node) => {
+        if (node.id === target) {
+          flows.push(node.type)
+        }
+      })
+    })
 
-    // setIsFlow(flows)
-  // }
+    setIsFlow(flows)
+  }
 
-  // useEffect(() => {
-  //   onAutomateFlow()
-  // }, [edges])
+  useEffect(() => {
+    onAutomateFlow()
+  }, [edges])
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-3 p-4">
         <Button
           onClick={onFlowAutomation}
+          disabled={isFlow.length < 1}
         >
           Save
         </Button>
         <Button
+          disabled={isFlow.length < 1}
           onClick={onPublishWorkflow}
         >
           Publish
