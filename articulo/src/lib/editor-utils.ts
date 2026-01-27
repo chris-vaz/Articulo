@@ -4,7 +4,7 @@ import { EditorState } from '@/providers/editor-provider'
 import { getDiscordConnectionUrl } from '@/app/(main)/(pages)/connections/_actions/discord-connection'
 import {
   getNotionConnection,
-  // getNotionDatabase,
+  getNotionDatabase,
 } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
 import {
   getSlackConnection,
@@ -91,55 +91,55 @@ export const onConnections = async (
   editorState: EditorState,
   googleFile: any
 ) => {
-//   if (editorState.editor.selectedNode.data.title == 'Discord') {
-//     const connection = await getDiscordConnectionUrl()
-//     if (connection) {
-//       nodeConnection.setDiscordNode({
-//         webhookURL: connection.url,
-//         content: '',
-//         webhookName: connection.name,
-//         guildName: connection.guildName,
-//       })
-//     }
-//   }
-//   if (editorState.editor.selectedNode.data.title == 'Notion') {
-//     const connection = await getNotionConnection()
-//     if (connection) {
-//       nodeConnection.setNotionNode({
-//         accessToken: connection.accessToken,
-//         databaseId: connection.databaseId,
-//         workspaceName: connection.workspaceName,
-//         content: {
-//           name: googleFile.name,
-//           kind: googleFile.kind,
-//           type: googleFile.mimeType,
-//         },
-//       })
+  if (editorState.editor.selectedNode.data.title == 'Discord') {
+    const connection = await getDiscordConnectionUrl()
+    if (connection) {
+      nodeConnection.setDiscordNode({
+        webhookURL: connection.url,
+        content: '',
+        webhookName: connection.name,
+        guildName: connection.guildName,
+      })
+    }
+  }
+  if (editorState.editor.selectedNode.data.title == 'Notion') {
+    const connection = await getNotionConnection()
+    if (connection) {
+      nodeConnection.setNotionNode({
+        accessToken: connection.accessToken,
+        databaseId: connection.databaseId,
+        workspaceName: connection.workspaceName,
+        content: {
+          name: googleFile.name,
+          kind: googleFile.kind,
+          type: googleFile.mimeType,
+        },
+      })
 
-//       if (nodeConnection.notionNode.databaseId !== '') {
-//         const response = await getNotionDatabase(
-//           nodeConnection.notionNode.databaseId,
-//           nodeConnection.notionNode.accessToken
-//         )
-//       }
-//     }
-//   }
-//   if (editorState.editor.selectedNode.data.title == 'Slack') {
-//     const connection = await getSlackConnection()
-//     if (connection) {
-//       nodeConnection.setSlackNode({
-//         appId: connection.appId,
-//         authedUserId: connection.authedUserId,
-//         authedUserToken: connection.authedUserToken,
-//         slackAccessToken: connection.slackAccessToken,
-//         botUserId: connection.botUserId,
-//         teamId: connection.teamId,
-//         teamName: connection.teamName,
-//         userId: connection.userId,
-//         content: '',
-//       })
-//     }
-//   }
+      if (nodeConnection.notionNode.databaseId !== '') {
+        const response = await getNotionDatabase(
+          nodeConnection.notionNode.databaseId,
+          nodeConnection.notionNode.accessToken
+        )
+      }
+    }
+  }
+  if (editorState.editor.selectedNode.data.title == 'Slack') {
+    const connection = await getSlackConnection()
+    if (connection) {
+      nodeConnection.setSlackNode({
+        appId: connection.appId,
+        authedUserId: connection.authedUserId,
+        authedUserToken: connection.authedUserToken,
+        slackAccessToken: connection.slackAccessToken,
+        botUserId: connection.botUserId,
+        teamId: connection.teamId,
+        teamName: connection.teamName,
+        userId: connection.userId,
+        content: '',
+      })
+    }
+  }
 }
 
 export const fetchBotSlackChannels = async (
