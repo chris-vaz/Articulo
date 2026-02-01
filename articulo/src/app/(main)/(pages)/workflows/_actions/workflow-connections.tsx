@@ -8,14 +8,14 @@ export const getGoogleListener = async () => {
 
   if (!userId) return null
 
-  const listener = await db.user.findUnique({
-    where: {
-      clerkId: userId,
-    },
-    select: {
-      googleResourceId: true,
-    },
-  })
+    const listener = await db.user.findUnique({
+      where: {
+        clerkId: userId,
+      },
+      select: {
+        googleResourceId: true,
+      },
+    })
 
   return listener
 }
