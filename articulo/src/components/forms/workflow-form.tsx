@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { onCreateWorkflow } from '@/app/(main)/(pages)/workflows/_actions/workflow-connections'
 import { useModal } from '@/providers/modal-provider'
+import { WORKFLOW_TEMPLATES } from '@/lib/templates'
 
 type Props = {
   title?: string
@@ -39,6 +40,7 @@ const Workflowform = ({ subTitle, title }: Props) => {
     defaultValues: {
       name: '',
       description: '',
+      templateId: 'blank',
     },
   })
 
@@ -46,7 +48,7 @@ const Workflowform = ({ subTitle, title }: Props) => {
   const router = useRouter()
 
   const handleSubmit = async (values: z.infer<typeof WorkflowFormSchema>) => {
-    const workflow = await onCreateWorkflow(values.name, values.description)
+    const workflow = await onCreateWorkflow(values.name, values.description, values.templateId)
     if (workflow) {
       toast.message(workflow.message)
       router.refresh()
@@ -97,6 +99,30 @@ const Workflowform = ({ subTitle, title }: Props) => {
                       placeholder="Description"
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              disabled={isLoading}
+              control={form.control}
+              name="templateId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Template</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                    >
+                      <option value="blank">Blank Workflow</option>
+                      {WORKFLOW_TEMPLATES.map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.name}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

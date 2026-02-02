@@ -2,6 +2,7 @@
 import { Option } from '@/components/ui/multiple-selector'
 import { db } from '@/lib/db'
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { WORKFLOW_TEMPLATES } from '@/lib/templates'
 
 export const getGoogleListener = async () => {
   const { userId } = await auth()
@@ -148,16 +149,29 @@ export const onGetWorkflows = async () => {
   }
 }
 
-export const onCreateWorkflow = async (name: string, description: string) => {
+export const onCreateWorkflow = async (name: string, description: string, templateId?: string) => {
   const user = await currentUser()
 
   if (user) {
+    let nodes = '[]'
+    let edges = '[]'
+
+    if (templateId) {
+      const template = WORKFLOW_TEMPLATES.find((t) => t.id === templateId)
+      if (template) {
+        nodes = JSON.stringify(template.nodes)
+        edges = JSON.stringify(template.edges)
+      }
+    }
+
     //create new workflow
     const workflow = await db.workflows.create({
       data: {
         userId: user.id,
         name,
         description,
+        nodes,
+        edges,
       },
     })
 
