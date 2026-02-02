@@ -109,4 +109,17 @@ model Workflows {
   cronPath          String?
   userId            String
   User              User     @relation(fields: [userId], references: [clerkId])
+  executions        WorkflowExecution[]
+}
+
+model WorkflowExecution {
+  id          String    @id @default(uuid())
+  workflowId  String
+  workflow    Workflows @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  trigger     String
+  status      String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  error       String?
+  logs        String? // JSON string of execution steps
 }
