@@ -1,6 +1,6 @@
 # Articulo
+#### High-Performance SaaS Automation Builder
 
-High-Performance SaaS Automation Builder
 Articulo is a robust, full-stack SaaS automation platform designed to streamline complex business workflows. Inspired by industry leaders like Zapier, 
 Articulo allows users to create visual, logic-driven automations that connect disparate web services—such as Google Drive, Discord, Slack, and Notion—into a single, seamless engine.
 
@@ -16,6 +16,12 @@ Built with a modern, high-performance tech stack, this project demonstrates the 
 - Usage-Based Credits & Billing: Fully integrated with Stripe to manage subscription tiers and credit-based execution limits. 
 
 - Premium UI/UX: A stunning, dark-mode-first interface built with Next.js 14, Tailwind CSS, and Aceternity UI, featuring parallax effects and smooth animations.
+
+### 🖼️ Demo
+![Demo Page1](./articulo/public/articulo-demo1.jpg)
+![Demo Page2](./articulo/public/articulo-demo2.jpg)
+![Demo Page3](./articulo/public/articulo-demo3.jpg)
+![Demo Page4](./articulo/public/articulo-demo4.jpg)
 
 ### 🛠️ Tech Stack
 - Framework: Next.js 14 (App Router)
