@@ -1,38 +1,28 @@
 import { EditorCanvasCardType } from '@/lib/types'
 import { useEditor } from '@/providers/editor-provider'
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Position, useNodeId } from 'reactflow'
-import EditorCanvasIconHelper from './editor-canvas-card-icon-hepler'
 import CustomHandle from './custom-handle'
-import { Badge } from '@/components/ui/badge'
-
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import clsx from 'clsx'
-
-type Props = {}
+import { NodeIcon } from '@/components/global/node-icons'
+import { EditorCanvasDefaultCardTypes } from '@/lib/constant'
+import { cn } from '@/lib/utils'
 
 const EditorCanvasCardSingle = ({ data }: { data: EditorCanvasCardType }) => {
   const { dispatch, state } = useEditor()
   const nodeId = useNodeId()
-  const logo = useMemo(() => {
-    return <EditorCanvasIconHelper type={data.type} />
-  }, [data])
+  const isTrigger = EditorCanvasDefaultCardTypes[data.type]?.type === 'Trigger'
+  const isSelected = state.editor.selectedNode.id === nodeId
 
   return (
     <>
-      {data.type !== 'Trigger' && data.type !== 'Google Drive' && (
+      {!isTrigger && (
         <CustomHandle
           type="target"
           position={Position.Top}
           style={{ zIndex: 100 }}
         />
       )}
-      <Card
+      <div
         onClick={(e) => {
           e.stopPropagation()
           const val = state.editor.elements.find((n) => n.id === nodeId)
@@ -44,35 +34,29 @@ const EditorCanvasCardSingle = ({ data }: { data: EditorCanvasCardType }) => {
               },
             })
         }}
-        className="relative max-w-[400px] dark:border-muted-foreground/70"
+        className={cn(
+          'w-[280px] rounded-xl border bg-card p-4 shadow-sm transition-shadow',
+          isSelected ? 'border-primary ring-2 ring-primary/30' : 'hover:shadow-md'
+        )}
       >
-        <CardHeader className="flex flex-row items-center gap-4">
-          <div>{logo}</div>
-          <div>
-            <CardTitle className="text-md">{data.title}</CardTitle>
-            <CardDescription>
-              <p className="text-xs text-muted-foreground/50">
-                <b className="text-muted-foreground/80">ID: </b>
-                {nodeId}
-              </p>
-              <p>{data.description}</p>
-            </CardDescription>
+        <div className="flex items-start gap-3">
+          <NodeIcon type={data.type} className="h-9 w-9" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="truncate text-sm font-semibold">{data.title}</p>
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',
+                  isTrigger ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
+                )}
+              >
+                {isTrigger ? 'Trigger' : 'Action'}
+              </span>
+            </div>
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{data.description}</p>
           </div>
-        </CardHeader>
-        <Badge
-          variant="secondary"
-          className="absolute right-2 top-2"
-        >
-          {data.type}
-        </Badge>
-        <div
-          className={clsx('absolute left-3 top-4 h-2 w-2 rounded-full', {
-            'bg-green-500': Math.random() < 0.6,
-            'bg-orange-500': Math.random() >= 0.6 && Math.random() < 0.8,
-            'bg-red-500': Math.random() >= 0.8,
-          })}
-        ></div>
-      </Card>
+        </div>
+      </div>
       <CustomHandle
         type="source"
         position={Position.Bottom}

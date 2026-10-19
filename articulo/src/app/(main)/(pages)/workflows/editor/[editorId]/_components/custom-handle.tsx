@@ -32,7 +32,7 @@ const CustomHandle = (props: Props) => {
         if (sourcesFromHandleInState < 1) return true
         return false
       }}
-      className="!-bottom-2 !h-4 !w-4 dark:bg-neutral-800"
+      className="!h-3 !w-3"
     />
   )
 }
