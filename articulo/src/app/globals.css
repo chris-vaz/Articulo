@@ -2,88 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-100% - 2.5rem));
-  }
-}
-
-.animate-scroll {
-  animation: scroll var(--animation-duration, 20s) var(--animation-direction, forwards) linear infinite;
-}
-
-*::-webkit-scrollbar {
-  display: none !important;
-}
-.bg-radial-gradient {
-  background-image: radial-gradient(
-    circle at 10% 20%,
-    rgba(4, 159, 108, 1) 0%,
-    rgba(194, 254, 113, 1) 90.1%
-  );
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 240 10% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 240 10% 4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 240 10% 4%;
+    --primary: 262 72% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 44%;
+    --accent: 262 60% 96%;
+    --accent-foreground: 262 60% 30%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 38%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+    --border: 240 6% 90%;
+    --input: 240 6% 88%;
+    --ring: 262 72% 52%;
+    --sidebar: 240 5% 98%;
+    --sidebar-foreground: 240 6% 20%;
+    --radius: 0.625rem;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 96%;
+    --card: 240 8% 7%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 8% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 262 83% 68%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 5% 13%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 64%;
+    --accent: 262 30% 16%;
+    --accent-foreground: 262 90% 85%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 48%;
+    --success-foreground: 240 10% 4%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 240 10% 4%;
+    --border: 240 6% 14%;
+    --input: 240 6% 18%;
+    --ring: 262 83% 68%;
+    --sidebar: 240 10% 5%;
+    --sidebar-foreground: 240 5% 80%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  ::selection {
+    @apply bg-primary/30;
+  }
+
+  /* Thin, theme-aware scrollbars (instead of hiding them, which hurts usability). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-grid {
+    background-image: linear-gradient(to right, hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(hsl(var(--muted-foreground) / 0.25) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(180deg, hsl(var(--foreground)) 30%, hsl(var(--foreground) / 0.55));
+  }
+
+  .text-gradient-brand {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(90deg, #a78bfa, #f0abfc 50%, #93c5fd);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* React Flow (workflow editor) themed to match the app.
+   Prefixed with .react-flow so these win over reactflow/dist/style.css. */
+.react-flow .react-flow__controls {
+  @apply overflow-hidden rounded-lg border shadow-sm;
+}
+.react-flow .react-flow__controls-button {
+  @apply border-b border-border bg-card text-foreground hover:bg-muted;
+}
+.react-flow .react-flow__controls-button svg {
+  fill: currentColor;
+}
+.react-flow .react-flow__minimap {
+  background: hsl(var(--card));
+}
+.react-flow .react-flow__minimap-mask {
+  fill: hsl(var(--background) / 0.7);
+}
+.react-flow .react-flow__minimap-node {
+  fill: hsl(var(--primary) / 0.5);
+  stroke: none;
+}
+.react-flow .react-flow__edge-path {
+  stroke: hsl(var(--muted-foreground) / 0.6);
+  stroke-width: 1.5;
+}
+.react-flow .react-flow__handle {
+  @apply border-2 border-primary bg-card;
 }

@@ -1,16 +1,10 @@
+'use client'
 import { WorkflowFormSchema } from '@/lib/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card'
 import {
   Form,
   FormControl,
@@ -24,127 +18,119 @@ import { Button } from '../ui/button'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { onCreateWorkflow } from '@/app/(main)/(pages)/workflows/_actions/workflow-connections'
-import { useModal } from '@/providers/modal-provider'
 import { WORKFLOW_TEMPLATES } from '@/lib/templates'
+import { NodeIconRow } from '../global/node-icons'
+import { cn } from '@/lib/utils'
 
 type Props = {
-  title?: string
-  subTitle?: string
+  defaultTemplateId?: string
+  onDone?: () => void
 }
 
-const Workflowform = ({ subTitle, title }: Props) => {
-  const { setClose } = useModal()
+const Workflowform = ({ defaultTemplateId = 'blank', onDone }: Props) => {
+  const router = useRouter()
   const form = useForm<z.infer<typeof WorkflowFormSchema>>({
     mode: 'onChange',
     resolver: zodResolver(WorkflowFormSchema),
     defaultValues: {
       name: '',
       description: '',
-      templateId: 'blank',
+      templateId: defaultTemplateId,
     },
   })
 
-  const isLoading = form.formState.isLoading
-  const router = useRouter()
+  const isSubmitting = form.formState.isSubmitting
 
   const handleSubmit = async (values: z.infer<typeof WorkflowFormSchema>) => {
     const workflow = await onCreateWorkflow(values.name, values.description, values.templateId)
-    if (workflow) {
-      toast.message(workflow.message)
-      router.refresh()
+    if (workflow && 'id' in workflow && workflow.id) {
+      toast.success('Workflow created')
+      onDone?.()
+      router.push(`/workflows/editor/${workflow.id}`)
+    } else {
+      toast.error(workflow?.message ?? 'Something went wrong')
     }
-    setClose()
   }
 
   return (
-    <Card className="w-full max-w-[650px] border-none">
-      {title && subTitle && (
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{subTitle}</CardDescription>
-        </CardHeader>
-      )}
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex flex-col gap-4 text-left"
-          >
-            <FormField
-              disabled={isLoading}
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Name"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              disabled={isLoading}
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Description"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              disabled={isLoading}
-              control={form.control}
-              name="templateId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Template</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-4 text-left"
+      >
+        <FormField
+          control={form.control}
+          name="templateId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Start from</FormLabel>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup">
+                {WORKFLOW_TEMPLATES.map((template) => {
+                  const selected = field.value === template.id
+                  return (
+                    <button
+                      key={template.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => field.onChange(template.id)}
+                      className={cn(
+                        'flex flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:bg-muted',
+                        selected && 'border-primary bg-accent hover:bg-accent'
+                      )}
                     >
-                      <option value="blank">Blank Workflow</option>
-                      {WORKFLOW_TEMPLATES.map((template) => (
-                        <option key={template.id} value={template.id}>
-                          {template.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              className="mt-4"
-              disabled={isLoading}
-              type="submit"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
-                </>
-              ) : (
-                'Save Settings'
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                      <span className="text-sm font-medium">{template.name}</span>
+                      {template.nodes.length ? (
+                        <NodeIconRow types={template.nodes.map((n) => n.type)} />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Empty canvas</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          disabled={isSubmitting}
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="e.g. New invoices to Slack" autoFocus />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          disabled={isSubmitting}
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Input placeholder="What does this automation do?" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button className="mt-2" disabled={isSubmitting} type="submit">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="animate-spin" /> Creating
+            </>
+          ) : (
+            'Create and open editor'
+          )}
+        </Button>
+      </form>
+    </Form>
   )
 }
 

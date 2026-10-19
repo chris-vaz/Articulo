@@ -2,128 +2,40 @@
 
 import { Option } from '@/components/ui/multiple-selector'
 import { db } from '@/lib/db'
-import { currentUser } from '@clerk/nextjs/server'
-import axios from 'axios'
-
-export const onSlackConnect = async (
-  app_id: string,
-  authed_user_id: string,
-  authed_user_token: string,
-  slack_access_token: string,
-  bot_user_id: string,
-  team_id: string,
-  team_name: string,
-  user_id: string
-): Promise<void> => {
-  if (!slack_access_token) return
-
-  const slackConnection = await db.slack.findFirst({
-    where: { slackAccessToken: slack_access_token },
-    include: { connections: true },
-  })
-
-  if (!slackConnection) {
-    await db.slack.create({
-      data: {
-        userId: user_id,
-        appId: app_id,
-        authedUserId: authed_user_id,
-        authedUserToken: authed_user_token,
-        slackAccessToken: slack_access_token,
-        botUserId: bot_user_id,
-        teamId: team_id,
-        teamName: team_name,
-        connections: {
-          create: { userId: user_id, type: 'Slack' },
-        },
-      },
-    })
-  }
-}
+import { auth } from '@clerk/nextjs/server'
+import { listSlackBotChannels, postSlackMessages } from '@/lib/integrations/slack'
 
 export const getSlackConnection = async () => {
-  const user = await currentUser()
-  if (user) {
-    return await db.slack.findFirst({
-      where: { userId: user.id },
-    })
-  }
-  return null
+  const { userId } = await auth()
+  if (!userId) return null
+  return db.slack.findFirst({ where: { userId } })
 }
 
-export async function listBotChannels(
-  slackAccessToken: string
-): Promise<Option[]> {
-  const url = `https://slack.com/api/conversations.list?${new URLSearchParams({
-    types: 'public_channel,private_channel',
-    limit: '200',
-  })}`
-
+// Lists channels the Articulo bot has been added to in the user's workspace.
+export const listMySlackChannels = async (): Promise<Option[]> => {
+  const connection = await getSlackConnection()
+  if (!connection) return []
   try {
-    const { data } = await axios.get(url, {
-      headers: { Authorization: `Bearer ${slackAccessToken}` },
-    })
-
-    console.log(data)
-
-    if (!data.ok) throw new Error(data.error)
-
-    if (!data?.channels?.length) return []
-
-    return data.channels
-      .filter((ch: any) => ch.is_member)
-      .map((ch: any) => {
-        return { label: ch.name, value: ch.id }
-      })
-  } catch (error: any) {
-    console.error('Error listing bot channels:', error.message)
-    throw error
+    return await listSlackBotChannels(connection.slackAccessToken)
+  } catch (error) {
+    console.error('Error listing bot channels:', error)
+    return []
   }
 }
 
-const postMessageInSlackChannel = async (
-  slackAccessToken: string,
-  slackChannel: string,
-  content: string
-): Promise<void> => {
-  try {
-    await axios.post(
-      'https://slack.com/api/chat.postMessage',
-      { channel: slackChannel, text: content },
-      {
-        headers: {
-          Authorization: `Bearer ${slackAccessToken}`,
-          'Content-Type': 'application/json;charset=utf-8',
-        },
-      }
-    )
-    console.log(`Message posted successfully to channel ID: ${slackChannel}`)
-  } catch (error: any) {
-    console.error(
-      `Error posting message to Slack channel ${slackChannel}:`,
-      error?.response?.data || error.message
-    )
-  }
-}
-
-// Wrapper function to post messages to multiple Slack channels
-export const postMessageToSlack = async (
-  slackAccessToken: string,
+export const onTestSlackMessage = async (
   selectedSlackChannels: Option[],
   content: string
 ): Promise<{ message: string }> => {
-  if (!content) return { message: 'Content is empty' }
-  if (!selectedSlackChannels?.length) return { message: 'Channel not selected' }
-
+  const connection = await getSlackConnection()
+  if (!connection) return { message: 'Slack is not connected' }
   try {
-    selectedSlackChannels
-      .map((channel) => channel?.value)
-      .forEach((channel) => {
-        postMessageInSlackChannel(slackAccessToken, channel, content)
-      })
+    return await postSlackMessages(
+      connection.slackAccessToken,
+      (selectedSlackChannels ?? []).map((c) => c.value),
+      content
+    )
   } catch (error) {
-    return { message: 'Message could not be sent to Slack' }
+    return { message: error instanceof Error ? error.message : 'Slack request failed' }
   }
-
-  return { message: 'Success' }
 }

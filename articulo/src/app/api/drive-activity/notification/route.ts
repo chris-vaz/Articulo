@@ -1,163 +1,32 @@
-import { postContentToWebHook } from '@/app/(main)/(pages)/connections/_actions/discord-connection'
-import { onCreateNewPageInDatabase } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
-import { postMessageToSlack } from '@/app/(main)/(pages)/connections/_actions/slack-connection'
 import { db } from '@/lib/db'
-import axios from 'axios'
-import { headers } from 'next/headers'
+import { runPublishedWorkflows } from '@/lib/workflow-runner'
 import { NextRequest } from 'next/server'
-import { startExecution, logStep, completeExecution } from '@/lib/workflow-logger'
 
+export const runtime = 'nodejs'
+
+// Google Drive push notifications (see /api/drive-activity for the watch setup).
 export async function POST(req: NextRequest) {
-  console.log('🔴 Changed')
-  const headersList = headers()
-  let channelResourceId
-  ;(await headersList).forEach((value, key) => {
-    if (key == 'x-goog-resource-id') {
-      channelResourceId = value
-    }
-  })
+  const resourceId = req.headers.get('x-goog-resource-id')
+  const resourceState = req.headers.get('x-goog-resource-state')
+  const channelToken = req.headers.get('x-goog-channel-token')
 
-  if (channelResourceId) {
-    const user = await db.user.findFirst({
-      where: {
-        googleResourceId: channelResourceId,
-      },
-      select: { clerkId: true, credits: true },
-    })
-    if ((user && parseInt(user.credits!) > 0) || user?.credits == 'Unlimited') {
-      const workflow = await db.workflows.findMany({
-        where: {
-          userId: user.clerkId,
-        },
-      })
-      if (workflow) {
-        workflow.map(async (flow) => {
-          const flowPath = JSON.parse(flow.flowPath!)
-          let current = 0
-          
-          const executionId = await startExecution(flow.id, 'Google Drive')
-          if (!executionId) return
-
-          try {
-            while (current < flowPath.length) {
-              if (flowPath[current] == 'Discord') {
-                const discordMessage = await db.discordWebhook.findFirst({
-                  where: {
-                    userId: flow.userId,
-                  },
-                  select: {
-                    url: true,
-                  },
-                })
-                if (discordMessage) {
-                  await postContentToWebHook(
-                    flow.discordTemplate!,
-                    discordMessage.url
-                  )
-                  await logStep(executionId, 'Discord', { message: 'Posted to Discord' }, 'SUCCESS')
-                  flowPath.splice(flowPath[current], 1)
-                }
-              }
-              if (flowPath[current] == 'Slack') {
-                const channels = flow.slackChannels.map((channel) => {
-                  return {
-                    label: '',
-                    value: channel,
-                  }
-                })
-                await postMessageToSlack(
-                  flow.slackAccessToken!,
-                  channels,
-                  flow.slackTemplate!
-                )
-                await logStep(executionId, 'Slack', { message: 'Posted to Slack', channels }, 'SUCCESS')
-                flowPath.splice(flowPath[current], 1)
-              }
-              if (flowPath[current] == 'Notion') {
-                await onCreateNewPageInDatabase(
-                  flow.notionDbId!,
-                  flow.notionAccessToken!,
-                  JSON.parse(flow.notionTemplate!)
-                )
-                await logStep(executionId, 'Notion', { message: 'Created page in Notion' }, 'SUCCESS')
-                flowPath.splice(flowPath[current], 1)
-              }
-
-              if (flowPath[current] == 'Wait') {
-                const res = await axios.put(
-                  'https://api.cron-job.org/jobs',
-                  {
-                    job: {
-                      url: `${process.env.NGROK_URI}?flow_id=${flow.id}`,
-                      enabled: 'true',
-                      schedule: {
-                        timezone: 'Europe/Istanbul',
-                        expiresAt: 0,
-                        hours: [-1],
-                        mdays: [-1],
-                        minutes: ['*****'],
-                        months: [-1],
-                        wdays: [-1],
-                      },
-                    },
-                  },
-                  {
-                    headers: {
-                      Authorization: `Bearer ${process.env.CRON_JOB_KEY!}`,
-                      'Content-Type': 'application/json',
-                    },
-                  }
-                )
-                if (res) {
-                  flowPath.splice(flowPath[current], 1)
-                  const cronPath = await db.workflows.update({
-                    where: {
-                      id: flow.id,
-                    },
-                    data: {
-                      cronPath: JSON.stringify(flowPath),
-                    },
-                  })
-                  await logStep(executionId, 'Wait', { message: 'Scheduled cron job' }, 'SUCCESS')
-                  if (cronPath) break
-                }
-                break
-              }
-              current++
-            }
-            
-            await completeExecution(executionId, 'SUCCESS')
-
-            await db.user.update({
-              where: {
-                clerkId: user.clerkId,
-              },
-              data: {
-                credits: `${parseInt(user.credits!) - 1}`,
-              },
-            })
-          } catch (error) {
-            console.error('Workflow execution error:', error)
-            await completeExecution(executionId, 'FAILED', String(error))
-          }
-        })
-        return Response.json(
-          {
-            message: 'flow completed',
-          },
-          {
-            status: 200,
-          }
-        )
-      }
-    }
+  // Reject anything that wasn't sent with our secret channel token.
+  const secret = process.env.GOOGLE_DRIVE_WEBHOOK_SECRET
+  if (secret && channelToken !== secret) {
+    return Response.json({ message: 'invalid token' }, { status: 401 })
   }
-  return Response.json(
-    {
-      message: 'success',
-    },
-    {
-      status: 200,
-    }
-  )
+
+  // Google sends a "sync" message when the channel is created. Nothing to run.
+  if (!resourceId || resourceState === 'sync') {
+    return Response.json({ message: 'ok' })
+  }
+
+  const user = await db.user.findFirst({
+    where: { googleResourceId: resourceId },
+    select: { clerkId: true },
+  })
+  if (!user) return Response.json({ message: 'ok' })
+
+  const results = await runPublishedWorkflows(user.clerkId, 'Google Drive')
+  return Response.json({ message: 'flow completed', results })
 }

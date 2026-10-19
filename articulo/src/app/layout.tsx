@@ -1,17 +1,35 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { DM_Sans } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { ClerkProvider } from '@clerk/nextjs'
-import ModalProvider from '@/providers/modal-provider'
 import { Toaster } from '@/components/ui/sonner'
-import { BillingProvider } from '@/providers/billing-provider'
+import { appUrl } from '@/lib/env'
 
-const font = DM_Sans({ subsets: ['latin'] })
+const font = DM_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-sans' })
 
 export const metadata: Metadata = {
-  title: 'articulo',
-  description: 'Automate Your Work With Articulo.',
+  metadataBase: new URL(appUrl()),
+  title: {
+    default: 'Articulo · Automate your work',
+    template: '%s · Articulo',
+  },
+  description:
+    'Connect Google Drive, Slack, Notion and Discord with visual, no-code workflows.',
+  openGraph: {
+    title: 'Articulo · Automate your work',
+    description:
+      'Connect Google Drive, Slack, Notion and Discord with visual, no-code workflows.',
+    images: ['/screenshots/editor.webp'],
+    type: 'website',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
 }
 
 export default function RootLayout({
@@ -21,22 +39,37 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        // Follows the app's light/dark theme through the CSS variables in globals.css.
+        variables: {
+          colorPrimary: 'hsl(var(--primary))',
+          colorPrimaryForeground: 'hsl(var(--primary-foreground))',
+          colorBackground: 'hsl(var(--card))',
+          colorForeground: 'hsl(var(--foreground))',
+          colorMutedForeground: 'hsl(var(--muted-foreground))',
+          colorMuted: 'hsl(var(--muted))',
+          colorInput: 'hsl(var(--background))',
+          colorInputForeground: 'hsl(var(--foreground))',
+          colorBorder: 'hsl(var(--border))',
+          colorNeutral: 'hsl(var(--foreground))',
+          borderRadius: '0.625rem',
+        },
+        elements: {
+          socialButtonsBlockButton: 'border border-border',
+          formFieldInput: 'border border-input',
+        },
+      }}
     >
-      <html lang="en" suppressHydrationWarning>
-        <body className={font.className}>
+      <html lang="en" suppressHydrationWarning className={font.variable}>
+        <body className="font-sans">
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
-            <BillingProvider>
-              <ModalProvider>
-                {children}
-                <Toaster />
-              </ModalProvider>
-            </BillingProvider>
+            {children}
+            <Toaster richColors closeButton position="bottom-right" />
           </ThemeProvider>
         </body>
       </html>

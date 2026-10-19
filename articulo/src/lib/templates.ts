@@ -24,7 +24,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     nodes: [
       {
         id: 'trigger-1',
-        type: 'Trigger',
+        type: 'Google Drive',
         position: { x: 250, y: 0 },
         data: {
           title: 'Google Drive',
@@ -60,7 +60,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     nodes: [
       {
         id: 'trigger-1',
-        type: 'Trigger',
+        type: 'Google Drive',
         position: { x: 250, y: 0 },
         data: {
           title: 'Google Drive',
@@ -90,53 +90,37 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     ],
   },
   {
-    id: 'scheduled-slack',
-    name: 'Scheduled Slack Message',
-    description: 'Send a recurring Slack message using a Cron trigger',
+    id: 'drive-discord',
+    name: 'Google Drive to Discord',
+    description: 'Post to a Discord channel when a file changes in Google Drive',
     nodes: [
       {
         id: 'trigger-1',
-        type: 'Trigger',
+        type: 'Google Drive',
         position: { x: 250, y: 0 },
         data: {
-          title: 'Trigger',
-          description: 'Start the workflow',
+          title: 'Google Drive',
+          description: 'Trigger when files change',
           completed: false,
           current: false,
           metadata: {},
-          type: 'Trigger',
-        },
-      },
-      {
-        id: 'wait-1',
-        type: 'Wait',
-        position: { x: 250, y: 150 },
-        data: {
-          title: 'Wait',
-          description: 'Delay / Cron',
-          completed: false,
-          current: false,
-          metadata: {},
-          type: 'Wait',
+          type: 'Google Drive',
         },
       },
       {
         id: 'action-1',
-        type: 'Slack',
-        position: { x: 250, y: 300 },
+        type: 'Discord',
+        position: { x: 250, y: 200 },
         data: {
-          title: 'Slack',
-          description: 'Send a notification to Slack',
+          title: 'Discord',
+          description: 'Post a message to Discord',
           completed: false,
           current: false,
           metadata: {},
-          type: 'Slack',
+          type: 'Discord',
         },
       },
     ],
-    edges: [
-      { id: 'e1', source: 'trigger-1', target: 'wait-1' },
-      { id: 'e2', source: 'wait-1', target: 'action-1' },
-    ],
+    edges: [{ id: 'e1', source: 'trigger-1', target: 'action-1' }],
   },
 ]

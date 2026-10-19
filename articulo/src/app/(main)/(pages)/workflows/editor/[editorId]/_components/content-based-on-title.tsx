@@ -15,7 +15,6 @@ import { onContentChange } from '@/lib/editor-utils'
 import GoogleFileDetails from './google-file-details'
 import GoogleDriveFiles from './google-drive-files'
 import ActionButton from './action-button'
-import { getFileMetaData } from '@/app/(main)/(pages)/connections/_actions/google-connection'
 import axios from 'axios'
 import { toast } from 'sonner'
 
@@ -54,15 +53,12 @@ const ContentBasedOnTitle = ({
 
   useEffect(() => {
     const reqGoogle = async () => {
-      const response: { data: { message: { files: any } } } = await axios.get(
-        '/api/drive'
-      )
-      if (response) {
-        console.log(response.data.message.files[0])
-        toast.message("Fetched File")
-        setFile(response.data.message.files[0])
-      } else {
-        toast.error('Something went wrong')
+      try {
+        const response = await axios.get('/api/drive')
+        const latest = response.data?.message?.files?.[0]
+        if (latest) setFile(latest)
+      } catch {
+        toast.error('Could not load Google Drive files')
       }
     }
     reqGoogle()
@@ -123,7 +119,7 @@ const ContentBasedOnTitle = ({
               </CardContent>
             </Card>
           )}
-          {/* {title === 'Google Drive' && <GoogleDriveFiles />} */}
+          {title === 'Google Drive' && <GoogleDriveFiles />}
           <ActionButton
             currentService={title}
             nodeConnection={nodeConnection}

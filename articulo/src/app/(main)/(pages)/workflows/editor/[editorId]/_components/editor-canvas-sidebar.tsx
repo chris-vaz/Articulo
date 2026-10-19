@@ -8,17 +8,11 @@ import React, { useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { CONNECTIONS, EditorCanvasDefaultCardTypes } from '@/lib/constant'
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   fetchBotSlackChannels,
   onConnections,
   onDragStart,
 } from '@/lib/editor-utils'
-import EditorCanvasIconHelper from './editor-canvas-card-icon-hepler'
+import { NodeIcon } from '@/components/global/node-icons'
 import {
   Accordion,
   AccordionContent,
@@ -45,28 +39,30 @@ const EditorCanvasSidebar = ({ nodes }: Props) => {
 
   useEffect(() => {
     if (nodeConnection.slackNode.slackAccessToken) {
-      fetchBotSlackChannels(
-        nodeConnection.slackNode.slackAccessToken,
-        setSlackChannels
-      )
+      fetchBotSlackChannels(setSlackChannels)
     }
-  }, [nodeConnection])
+  }, [nodeConnection.slackNode.slackAccessToken])
 
   return (
-    <aside>
+    <aside className="flex h-full min-h-0 flex-col">
       <Tabs
         defaultValue="actions"
-        className="h-screen overflow-scroll pb-24"
+        className="flex min-h-0 flex-1 flex-col"
       >
-        <TabsList className="bg-transparent">
+        <TabsList className="mx-4 grid grid-cols-2">
           <TabsTrigger value="actions">Actions</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         <Separator />
         <TabsContent
           value="actions"
-          className="flex flex-col gap-4 p-4"
+          className="flex flex-col gap-3 overflow-y-auto p-4"
         >
+          <p className="text-xs text-muted-foreground">
+            {nodes.length
+              ? 'Drag an action onto the canvas, then connect it to the previous step.'
+              : 'Start by dragging a trigger onto the canvas.'}
+          </p>
           {Object.entries(EditorCanvasDefaultCardTypes)
             .filter(
               ([_, cardType]) =>
@@ -74,30 +70,28 @@ const EditorCanvasSidebar = ({ nodes }: Props) => {
                 (nodes.length && cardType.type === 'Action')
             )
             .map(([cardKey, cardValue]) => (
-              <Card
+              <div
                 key={cardKey}
                 draggable
-                className="w-full cursor-grab border-black bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900"
+                className="flex w-full cursor-grab items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:border-primary/50 hover:bg-accent/40 active:cursor-grabbing"
                 onDragStart={(event) =>
                   onDragStart(event, cardKey as EditorCanvasTypes)
                 }
               >
-                <CardHeader className="flex flex-row items-center gap-4 p-4">
-                  <EditorCanvasIconHelper type={cardKey as EditorCanvasTypes} />
-                  <CardTitle className="text-md">
-                    {cardKey}
-                    <CardDescription>{cardValue.description}</CardDescription>
-                  </CardTitle>
-                </CardHeader>
-              </Card>
+                <NodeIcon type={cardKey} className="h-9 w-9" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{cardKey}</p>
+                  <p className="text-xs text-muted-foreground">{cardValue.description}</p>
+                </div>
+              </div>
             ))}
         </TabsContent>
         <TabsContent
           value="settings"
-          className="-mt-6"
+          className="overflow-y-auto"
         >
-          <div className="px-2 py-4 text-center text-xl font-bold">
-            {state.editor.selectedNode.data.title}
+          <div className="px-4 py-3 text-base font-semibold">
+            {state.editor.selectedNode.data.title || 'Select a node on the canvas to configure it'}
           </div>
 
           <Accordion type="multiple">

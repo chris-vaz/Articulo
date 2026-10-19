@@ -1,37 +1,34 @@
 import React from 'react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { WORKFLOW_TEMPLATES } from '@/lib/templates'
+import PageHeader, { PageBody } from '@/components/global/page-header'
+import { NodeIconRow } from '@/components/global/node-icons'
+import WorkflowButton from '../workflows/_components/workflow-button'
 
 const TemplatesPage = () => {
+  const templates = WORKFLOW_TEMPLATES.filter((t) => t.nodes.length)
+
   return (
-    <div className="flex flex-col gap-4 relative">
-      <h1 className="text-4xl sticky top-0 z-[10] p-6 bg-background/50 backdrop-blur-lg flex items-center border-b">
-        Templates
-      </h1>
-      <div className="flex flex-col gap-4 p-6 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {WORKFLOW_TEMPLATES.map((template) => (
-            <Card key={template.id} className="hover:bg-muted/50 transition-colors">
-              <CardHeader>
-                <CardTitle>{template.name}</CardTitle>
-                <CardDescription>{template.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-muted-foreground">
-                    Nodes: {template.nodes.length} | Edges: {template.edges.length}
-                </div>
-              </CardContent>
+    <>
+      <PageHeader
+        title="Templates"
+        description="Ready-made automations. Pick one, connect your apps, and publish."
+      />
+      <PageBody>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {templates.map((template) => (
+            <Card key={template.id} className="flex flex-col gap-4 p-5">
+              <NodeIconRow types={template.nodes.map((n) => n.type)} />
+              <div className="flex-1">
+                <h3 className="font-semibold">{template.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
+              </div>
+              <WorkflowButton label="Use template" templateId={template.id} />
             </Card>
           ))}
         </div>
-      </div>
-    </div>
+      </PageBody>
+    </>
   )
 }
 
