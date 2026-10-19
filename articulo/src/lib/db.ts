@@ -1,23 +1,19 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+import { databaseUrl } from './env'
 
 declare global {
   var prisma: PrismaClient | undefined
 }
 
-export const db =
-  globalThis.prisma ??
+const createClient = () =>
   new PrismaClient({
     log: ['error'],
-    // Prisma v7 "client" engine requires a Driver Adapter (or Accelerate URL).
-    // Neon is Postgres, so using the standard pg adapter is the simplest/most reliable setup.
-    adapter: new PrismaPg(
-      new Pool({
-        connectionString: process.env.DATABASE_URL,
-      })
-    ),
+    // Prisma v7 requires a driver adapter. Neon / Supabase / local Postgres all speak pg.
+    adapter: new PrismaPg({ connectionString: databaseUrl() }),
   })
+
+export const db = globalThis.prisma ?? createClient()
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = db
