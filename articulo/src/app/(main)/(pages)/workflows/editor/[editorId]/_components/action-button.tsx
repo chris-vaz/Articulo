@@ -1,13 +1,13 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { Option } from './content-based-on-title'
 import { ConnectionProviderProps } from '@/providers/connections-provider'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { postContentToWebHook } from '@/app/(main)/(pages)/connections/_actions/discord-connection'
+import { onTestDiscordMessage } from '@/app/(main)/(pages)/connections/_actions/discord-connection'
+import { onTestNotionPage } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
+import { onTestSlackMessage } from '@/app/(main)/(pages)/connections/_actions/slack-connection'
 import { onCreateNodeTemplate } from '../../../_actions/workflow-connections'
 import { toast } from 'sonner'
-// import { onCreateNewPageInDatabase } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
-import { postMessageToSlack } from '@/app/(main)/(pages)/connections/_actions/slack-connection'
 
 type Props = {
   currentService: string
@@ -24,42 +24,31 @@ const ActionButton = ({
 }: Props) => {
   const pathname = usePathname()
 
-  const onSendDiscordMessage = useCallback(async () => {
-    const response = await postContentToWebHook(
-      nodeConnection.discordNode.content,
-      nodeConnection.discordNode.webhookURL
-    )
+  const onSendDiscordMessage = async () => {
+    const response = await onTestDiscordMessage(nodeConnection.discordNode.content)
 
     if (response.message == 'success') {
+      toast.success('Message sent to Discord')
       nodeConnection.setDiscordNode((prev: any) => ({
         ...prev,
         content: '',
       }))
+    } else {
+      toast.error(response.message)
     }
-  }, [nodeConnection.discordNode])
+  }
 
-  const onStoreNotionContent = useCallback(async () => {
-    console.log(
-      nodeConnection.notionNode.databaseId,
-      nodeConnection.notionNode.accessToken,
-      nodeConnection.notionNode.content
-    )
-    // const response = await onCreateNewPageInDatabase(
-    //   nodeConnection.notionNode.databaseId,
-    //   nodeConnection.notionNode.accessToken,
-    //   nodeConnection.notionNode.content
-    // )
-    // if (response) {
-    //   nodeConnection.setNotionNode((prev: any) => ({
-    //     ...prev,
-    //     content: '',
-    //   }))
-    // }
-  }, [nodeConnection.notionNode])
+  const onStoreNotionContent = async () => {
+    const response = await onTestNotionPage(nodeConnection.notionNode.content)
+    if (response.message == 'success') {
+      toast.success('Test page created in Notion')
+    } else {
+      toast.error(response.message)
+    }
+  }
 
-  const onStoreSlackContent = useCallback(async () => {
-    const response = await postMessageToSlack(
-      nodeConnection.slackNode.slackAccessToken,
+  const onStoreSlackContent = async () => {
+    const response = await onTestSlackMessage(
       channels!,
       nodeConnection.slackNode.content
     )
@@ -73,49 +62,37 @@ const ActionButton = ({
     } else {
       toast.error(response.message)
     }
-  }, [nodeConnection.slackNode, channels])
+  }
 
-  const onCreateLocalNodeTempate = useCallback(async () => {
+  const onCreateLocalNodeTempate = async () => {
+    const workflowId = pathname.split('/').pop()!
+    let response: string | undefined
+
     if (currentService === 'Discord') {
-      const response = await onCreateNodeTemplate(
+      response = await onCreateNodeTemplate(
         nodeConnection.discordNode.content,
         currentService,
-        pathname.split('/').pop()!
+        workflowId
       )
-
-      if (response) {
-        toast.message(response)
-      }
     }
     if (currentService === 'Slack') {
-      const response = await onCreateNodeTemplate(
+      response = await onCreateNodeTemplate(
         nodeConnection.slackNode.content,
         currentService,
-        pathname.split('/').pop()!,
-        channels,
-        nodeConnection.slackNode.slackAccessToken
+        workflowId,
+        channels
       )
-
-      if (response) {
-        toast.message(response)
-      }
     }
-
     if (currentService === 'Notion') {
-      const response = await onCreateNodeTemplate(
+      response = await onCreateNodeTemplate(
         JSON.stringify(nodeConnection.notionNode.content),
         currentService,
-        pathname.split('/').pop()!,
-        [],
-        nodeConnection.notionNode.accessToken,
-        nodeConnection.notionNode.databaseId
+        workflowId
       )
-
-      if (response) {
-        toast.message(response)
-      }
     }
-  }, [nodeConnection, channels])
+
+    if (response) toast.message(response)
+  }
 
   const renderActionButton = () => {
     switch (currentService) {

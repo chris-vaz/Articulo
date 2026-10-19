@@ -1,194 +1,126 @@
 'use server'
 import { Option } from '@/components/ui/multiple-selector'
 import { db } from '@/lib/db'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
+import { getDbUser, requireWorkflow } from '@/lib/auth'
 import { WORKFLOW_TEMPLATES } from '@/lib/templates'
 
 export const getGoogleListener = async () => {
   const { userId } = await auth()
-
   if (!userId) return null
 
-    const listener = await db.user.findUnique({
-      where: {
-        clerkId: userId,
-      },
-      select: {
-        googleResourceId: true,
-      },
-    })
-
-  return listener
+  return db.user.findUnique({
+    where: { clerkId: userId },
+    select: { googleResourceId: true },
+  })
 }
 
 export const onFlowPublish = async (workflowId: string, state: boolean) => {
-  console.log(state)
+  await requireWorkflow(workflowId)
   const published = await db.workflows.update({
-    where: {
-      id: workflowId,
-    },
-    data: {
-      publish: state,
-    },
+    where: { id: workflowId },
+    data: { publish: state },
   })
 
   if (published.publish) return 'Workflow published'
   return 'Workflow unpublished'
 }
 
+// Saves the message/template for an action node. Credentials are always read
+// from the user's stored connection, never from the browser.
 export const onCreateNodeTemplate = async (
   content: string,
   type: string,
   workflowId: string,
-  channels?: Option[],
-  accessToken?: string,
-  notionDbId?: string
+  channels?: Option[]
 ) => {
-  if (type === 'Discord') {
-    const response = await db.workflows.update({
-      where: {
-        id: workflowId,
-      },
-      data: {
-        discordTemplate: content,
-      },
-    })
+  const workflow = await requireWorkflow(workflowId)
 
-    if (response) {
-      return 'Discord template saved'
-    }
+  if (type === 'Discord') {
+    await db.workflows.update({
+      where: { id: workflowId },
+      data: { discordTemplate: content },
+    })
+    return 'Discord template saved'
   }
+
   if (type === 'Slack') {
-    const response = await db.workflows.update({
-      where: {
-        id: workflowId,
-      },
+    const slack = await db.slack.findFirst({ where: { userId: workflow.userId } })
+    if (!slack) return 'Connect Slack first'
+
+    const slackChannels = [
+      ...new Set((channels ?? []).map((channel) => channel.value)),
+    ]
+    await db.workflows.update({
+      where: { id: workflowId },
       data: {
         slackTemplate: content,
-        slackAccessToken: accessToken,
+        slackAccessToken: null,
+        slackChannels,
       },
     })
-
-    if (response) {
-      const channelList = await db.workflows.findUnique({
-        where: {
-          id: workflowId,
-        },
-        select: {
-          slackChannels: true,
-        },
-      })
-
-      if (channelList) {
-        //remove duplicates before insert
-        const NonDuplicated = channelList.slackChannels.filter(
-          (channel) => channel !== channels![0].value
-        )
-
-        NonDuplicated!
-          .map((channel) => channel)
-          .forEach(async (channel) => {
-            await db.workflows.update({
-              where: {
-                id: workflowId,
-              },
-              data: {
-                slackChannels: {
-                  push: channel,
-                },
-              },
-            })
-          })
-
-        return 'Slack template saved'
-      }
-      channels!
-        .map((channel) => channel.value)
-        .forEach(async (channel) => {
-          await db.workflows.update({
-            where: {
-              id: workflowId,
-            },
-            data: {
-              slackChannels: {
-                push: channel,
-              },
-            },
-          })
-        })
-      return 'Slack template saved'
-    }
+    return 'Slack template saved'
   }
 
   if (type === 'Notion') {
-    const response = await db.workflows.update({
-      where: {
-        id: workflowId,
-      },
+    const notion = await db.notion.findFirst({ where: { userId: workflow.userId } })
+    if (!notion) return 'Connect Notion first'
+
+    await db.workflows.update({
+      where: { id: workflowId },
       data: {
         notionTemplate: content,
-        notionAccessToken: accessToken,
-        notionDbId: notionDbId,
+        notionAccessToken: null,
+        notionDbId: notion.databaseId,
       },
     })
-
-    if (response) return 'Notion template saved'
+    return 'Notion template saved'
   }
 }
 
 export const onGetWorkflows = async () => {
-  const user = await currentUser()
-  if (user) {
-    const workflow = await db.workflows.findMany({
-      where: {
-        userId: user.id,
-      },
-    })
-
-    if (workflow) return workflow
-  }
+  const { userId } = await auth()
+  if (!userId) return []
+  return db.workflows.findMany({ where: { userId } })
 }
 
-export const onCreateWorkflow = async (name: string, description: string, templateId?: string) => {
-  const user = await currentUser()
+export const onCreateWorkflow = async (
+  name: string,
+  description: string,
+  templateId?: string
+) => {
+  const user = await getDbUser()
+  if (!user) return { message: 'Please sign in' }
 
-  if (user) {
-    let nodes = '[]'
-    let edges = '[]'
+  const template = WORKFLOW_TEMPLATES.find((t) => t.id === templateId)
 
-    if (templateId) {
-      const template = WORKFLOW_TEMPLATES.find((t) => t.id === templateId)
-      if (template) {
-        nodes = JSON.stringify(template.nodes)
-        edges = JSON.stringify(template.edges)
-      }
-    }
+  const workflow = await db.workflows.create({
+    data: {
+      userId: user.clerkId,
+      name,
+      description,
+      nodes: JSON.stringify(template?.nodes ?? []),
+      edges: JSON.stringify(template?.edges ?? []),
+    },
+  })
 
-    //create new workflow
-    const workflow = await db.workflows.create({
-      data: {
-        userId: user.id,
-        name,
-        description,
-        nodes,
-        edges,
-      },
-    })
-
-    if (workflow) return { message: 'workflow created' }
-    return { message: 'Oops! try again' }
-  }
+  if (workflow) return { message: 'workflow created', id: workflow.id }
+  return { message: 'Oops! try again' }
 }
 
 export const onGetNodesEdges = async (flowId: string) => {
-  const nodesEdges = await db.workflows.findUnique({
-    where: {
-      id: flowId,
-    },
-    select: {
-      nodes: true,
-      edges: true,
-    },
+  const { userId } = await auth()
+  if (!userId) return null
+  const nodesEdges = await db.workflows.findFirst({
+    where: { id: flowId, userId },
+    select: { nodes: true, edges: true },
   })
   if (nodesEdges?.nodes && nodesEdges?.edges) return nodesEdges
+  return null
+}
+
+export const onDeleteWorkflow = async (workflowId: string) => {
+  await requireWorkflow(workflowId)
+  await db.workflows.delete({ where: { id: workflowId } })
+  return 'Workflow deleted'
 }
