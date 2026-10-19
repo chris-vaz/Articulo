@@ -1,13 +1,14 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { useNodeConnections } from '@/providers/connections-provider'
 import { usePathname } from 'next/navigation'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   onCreateNodesEdges,
-  onFlowPublish,
+  onRunWorkflowNow,
 } from '../_actions/workflow-connections'
+import { onFlowPublish } from '../../../_actions/workflow-connections'
 import { toast } from 'sonner'
+import { Loader2, Play, Rocket, Save } from 'lucide-react'
 
 type Props = {
   children: React.ReactNode
@@ -17,57 +18,68 @@ type Props = {
 
 const FlowInstance = ({ children, edges, nodes }: Props) => {
   const pathname = usePathname()
-  const [isFlow, setIsFlow] = useState([])
-  const { nodeConnection } = useNodeConnections()
+  const workflowId = pathname.split('/').pop()!
+  const [isRunning, setIsRunning] = useState(false)
 
-  const onFlowAutomation = useCallback(async () => {
+  // Ordered list of action types, following the edges from the trigger.
+  const flowPath = useMemo(
+    () =>
+      edges
+        .map((edge) => nodes.find((node) => node.id === edge.target)?.type)
+        .filter(Boolean) as string[],
+    [edges, nodes]
+  )
+
+  const onFlowAutomation = async () => {
     const flow = await onCreateNodesEdges(
-      pathname.split('/').pop()!,
+      workflowId,
       JSON.stringify(nodes),
       JSON.stringify(edges),
-      JSON.stringify(isFlow)
+      JSON.stringify(flowPath)
     )
-
     if (flow) toast.message(flow.message)
-  }, [nodeConnection])
-
-  const onPublishWorkflow = useCallback(async () => {
-    const response = await onFlowPublish(pathname.split('/').pop()!, true)
-    if (response) toast.message(response)
-  }, [])
-
-  const onAutomateFlow = async () => {
-    const flows: any = []
-    const connectedEdges = edges.map((edge) => edge.target)
-    connectedEdges.map((target) => {
-      nodes.map((node) => {
-        if (node.id === target) {
-          flows.push(node.type)
-        }
-      })
-    })
-
-    setIsFlow(flows)
   }
 
-  useEffect(() => {
-    onAutomateFlow()
-  }, [edges])
+  const onPublishWorkflow = async () => {
+    await onFlowAutomation()
+    const response = await onFlowPublish(workflowId, true)
+    if (response) toast.message(response)
+  }
+
+  const onRunNow = async () => {
+    setIsRunning(true)
+    try {
+      await onFlowAutomation()
+      toast.message(await onRunWorkflowNow(workflowId))
+    } finally {
+      setIsRunning(false)
+    }
+  }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-3 p-4">
+    <div className="flex h-full flex-col">
+      <div className="flex flex-wrap gap-2 border-b p-4">
         <Button
+          variant="outline"
           onClick={onFlowAutomation}
-          disabled={isFlow.length < 1}
+          disabled={flowPath.length < 1}
         >
-          Save
+          <Save /> Save
         </Button>
         <Button
-          disabled={isFlow.length < 1}
-          onClick={onPublishWorkflow}
+          variant="outline"
+          disabled={flowPath.length < 1 || isRunning}
+          onClick={onRunNow}
         >
-          Publish
+          {isRunning ? <Loader2 className="animate-spin" /> : <Play />}
+          Run now
+        </Button>
+        <Button
+          disabled={flowPath.length < 1}
+          onClick={onPublishWorkflow}
+          className="ml-auto"
+        >
+          <Rocket /> Publish
         </Button>
       </div>
       {children}
