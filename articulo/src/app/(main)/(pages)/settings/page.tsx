@@ -2,7 +2,11 @@ import ProfileForm from '@/components/forms/profile-form'
 import React from 'react'
 import ProfilePicture from './_components/profile-picture'
 import { db } from '@/lib/db'
+import { getDbUser } from '@/lib/auth'
 import { currentUser } from '@clerk/nextjs/server'
+import PageHeader, { PageBody } from '@/components/global/page-header'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { features } from '@/lib/env'
 
 type Props = {}
 
@@ -10,7 +14,8 @@ const Settings = async (props: Props) => {
   const authUser = await currentUser()
   if (!authUser) return null
 
-  const user = await db.user.findUnique({ where: { clerkId: authUser.id } })
+  const user = await getDbUser()
+  if (!user) return null
   const removeProfileImage = async () => {
     'use server'
     const response = await db.user.update({
@@ -54,28 +59,34 @@ const Settings = async (props: Props) => {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="sticky top-0 z-[10] flex items-center justify-between border-b bg-background/50 p-6 text-4xl backdrop-blur-lg">
-        <span>Settings</span>
-      </h1>
-      <div className="flex flex-col gap-10 p-6">
-        <div>
-          <h2 className="text-2xl font-bold">User Profile</h2>
-          <p className="text-base text-white/50">
-            Add or update your information
-          </p>
-        </div>
-        <ProfilePicture
-          onDelete={removeProfileImage}
-          userImage={user?.profileImage || ''}
-          onUpload={uploadProfileImage}
-        />
-        <ProfileForm
-          user={user}
-          onUpdate={updateUserInfo}
-        />
-      </div>
-    </div>
+    <>
+      <PageHeader title="Settings" description="Manage your profile." />
+      <PageBody className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Profile picture</CardTitle>
+            <CardDescription>Shown across Articulo.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfilePicture
+              onDelete={removeProfileImage}
+              userImage={user?.profileImage || ''}
+              onUpload={uploadProfileImage}
+              uploadsEnabled={features.uploadcare()}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Profile</CardTitle>
+            <CardDescription>Your name and email address.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileForm user={user} onUpdate={updateUserInfo} />
+          </CardContent>
+        </Card>
+      </PageBody>
+    </>
   )
 }
 

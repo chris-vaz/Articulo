@@ -1,42 +1,39 @@
 'use client'
-import Workflowform from '@/components/forms/workflow-form'
-import CustomModal from '@/components/global/custom-modal'
-import { Button } from '@/components/ui/button'
-import { useBilling } from '@/providers/billing-provider'
-import { useModal } from '@/providers/modal-provider'
+import React, { useState } from 'react'
 import { Plus } from 'lucide-react'
-import React from 'react'
+import Workflowform from '@/components/forms/workflow-form'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
-type Props = {}
+type Props = { label?: string; templateId?: string }
 
-const WorkflowButton = (props: Props) => {
-  const { setOpen, setClose } = useModal()
-  const { credits } = useBilling()
-
-  const handleClick = () => {
-    setOpen(
-      <CustomModal
-        title="Create a Workflow Automation"
-        subheading="Workflows are a powerfull that help you automate tasks."
-      >
-        <Workflowform />
-      </CustomModal>
-    )
-  }
+const WorkflowButton = ({ label = 'New workflow', templateId }: Props) => {
+  const [open, setOpen] = useState(false)
 
   return (
-    <Button
-      size={'icon'}
-      {...(credits !== '0'
-        ? {
-            onClick: handleClick,
-          }
-        : {
-            disabled: true,
-          })}
-    >
-      <Plus />
-    </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus /> {label}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Create a workflow</DialogTitle>
+          <DialogDescription>
+            Start from a template or a blank canvas. You can change everything later.
+          </DialogDescription>
+        </DialogHeader>
+        <Workflowform defaultTemplateId={templateId} onDone={() => setOpen(false)} />
+      </DialogContent>
+    </Dialog>
   )
 }
 

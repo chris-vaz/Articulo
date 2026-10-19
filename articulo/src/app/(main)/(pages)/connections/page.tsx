@@ -1,117 +1,68 @@
 import { CONNECTIONS } from '@/lib/constant'
 import React from 'react'
 import ConnectionCard from './_components/connection-card'
-import { currentUser } from '@clerk/nextjs/server'
-import { onDiscordConnect } from './_actions/discord-connection'
-import { onNotionConnect } from './_actions/notion-connection'
-import { onSlackConnect } from './_actions/slack-connection'
-import { getUserData } from './_actions/get-user'
+import { db } from '@/lib/db'
+import { getDbUser } from '@/lib/auth'
+import { features } from '@/lib/env'
+import { getGoogleAccessToken } from '@/lib/integrations/google'
+import PageHeader, { PageBody } from '@/components/global/page-header'
 
 type Props = {
-  searchParams?: { [key: string]: string | undefined }
+  searchParams: Promise<{ connected?: string; error?: string; warning?: string }>
 }
 
-const Connections = async (props: Props) => {
-  const {
-    webhook_id,
-    webhook_name,
-    webhook_url,
-    guild_id,
-    guild_name,
-    channel_id,
-    access_token,
-    workspace_name,
-    workspace_icon,
-    workspace_id,
-    database_id,
-    app_id,
-    authed_user_id,
-    authed_user_token,
-    slack_access_token,
-    bot_user_id,
-    team_id,
-    team_name,
-  } = props.searchParams ?? {
-    webhook_id: '',
-    webhook_name: '',
-    webhook_url: '',
-    guild_id: '',
-    guild_name: '',
-    channel_id: '',
-    access_token: '',
-    workspace_name: '',
-    workspace_icon: '',
-    workspace_id: '',
-    database_id: '',
-    app_id: '',
-    authed_user_id: '',
-    authed_user_token: '',
-    slack_access_token: '',
-    bot_user_id: '',
-    team_id: '',
-    team_name: '',
-  }
+const Notice = ({ tone, children }: { tone: 'success' | 'warning' | 'error'; children: React.ReactNode }) => (
+  <p
+    role="status"
+    className={
+      tone === 'success'
+        ? 'rounded-lg border border-success/30 bg-success/10 p-3 text-sm'
+        : tone === 'warning'
+          ? 'rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm'
+          : 'rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm'
+    }
+  >
+    {children}
+  </p>
+)
 
-  const user = await currentUser()
+const Connections = async ({ searchParams }: Props) => {
+  const { connected, error, warning } = await searchParams
+  const user = await getDbUser()
   if (!user) return null
 
-  const onUserConnections = async () => {
-    console.log(database_id)
-    await onDiscordConnect(
-      channel_id!,
-      webhook_id!,
-      webhook_name!,
-      webhook_url!,
-      user.id,
-      guild_name!,
-      guild_id!
-    )
-    await onNotionConnect(
-      access_token!,
-      workspace_id!,
-      workspace_icon!,
-      workspace_name!,
-      database_id!,
-      user.id
-    )
+  const [userConnections, googleToken] = await Promise.all([
+    db.connections.findMany({
+      where: { userId: user.clerkId },
+      select: { type: true },
+    }),
+    getGoogleAccessToken(user.clerkId),
+  ])
 
-    await onSlackConnect(
-      app_id!,
-      authed_user_id!,
-      authed_user_token!,
-      slack_access_token!,
-      bot_user_id!,
-      team_id!,
-      team_name!,
-      user.id
-    )
+  const connections: Record<string, boolean> = Object.fromEntries(
+    userConnections.map((c) => [c.type, true])
+  )
+  // Google Drive access comes from signing in with Google through Clerk.
+  connections['Google Drive'] = !!googleToken
 
-    const connections: any = {}
-
-    const user_info = await getUserData(user.id)
-
-    //get user info with all connections
-    user_info?.connections.map((connection) => {
-      connections[connection.type] = true
-      return (connections[connection.type] = true)
-    })
-
-    // Google Drive connection will always be true
-    // as it is given access during the login process
-    return { ...connections, 'Google Drive': true }
+  const configured: Record<string, boolean> = {
+    'Google Drive': true,
+    Discord: features.discord(),
+    Notion: features.notion(),
+    Slack: features.slack(),
   }
 
-  const connections = await onUserConnections()
-
   return (
-    <div className="relative flex flex-col gap-4">
-      <h1 className="sticky top-0 z-[10] flex items-center justify-between border-b bg-background/50 p-6 text-4xl backdrop-blur-lg">
-        Connections
-      </h1>
-      <div className="relative flex flex-col gap-4">
-        <section className="flex flex-col gap-4 p-6 text-muted-foreground">
-          Connect all your apps directly from here. You may need to connect
-          these apps regularly to refresh verification
+    <>
+      <PageHeader
+        title="Connections"
+        description="Connect the apps your workflows use. Reconnect anytime to refresh access."
+      />
+      <PageBody className="space-y-4">
+        {connected && <Notice tone="success">{connected} connected successfully.</Notice>}
+        {warning && <Notice tone="warning">{warning}</Notice>}
+        {error && <Notice tone="error">{error}</Notice>}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {CONNECTIONS.map((connection) => (
             <ConnectionCard
               key={connection.title}
@@ -120,11 +71,12 @@ const Connections = async (props: Props) => {
               icon={connection.image}
               type={connection.title}
               connected={connections}
+              configured={configured[connection.title]}
             />
           ))}
-        </section>
-      </div>
-    </div>
+        </div>
+      </PageBody>
+    </>
   )
 }
 

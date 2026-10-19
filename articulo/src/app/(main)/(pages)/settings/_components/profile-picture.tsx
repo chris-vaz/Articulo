@@ -1,74 +1,56 @@
 'use client'
-import React from 'react'
-import UploadCareButton from './uploadcare-button'
+import React, { useTransition } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { Trash2, UserRound } from 'lucide-react'
+
+// The uploader widget is heavy, so it's only loaded when it's actually shown.
+const UploadCareButton = dynamic(() => import('./uploadcare-button'), {
+  ssr: false,
+  loading: () => <div className="h-10 w-48 animate-pulse rounded-lg bg-muted" />,
+})
 
 type Props = {
-    userImage: string | null
-    onDelete?: any
-    onUpload: any
+  userImage: string | null
+  onDelete?: () => Promise<unknown>
+  onUpload: (url: string) => Promise<unknown>
+  uploadsEnabled?: boolean
 }
 
-const ProfilePicture = ({ userImage, onDelete, onUpload }: Props) => {
-    const router = useRouter()
+const ProfilePicture = ({ userImage, onDelete, onUpload, uploadsEnabled = true }: Props) => {
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
 
-    const onRemoveProfileImage = async () => {
-        const response = await onDelete()
-        if (response) {
-            router.refresh()
-        }
-    }
+  const onRemoveProfileImage = () =>
+    startTransition(async () => {
+      await onDelete?.()
+      router.refresh()
+    })
 
-    return (
-        <div className="flex flex-col gap-3">
-            {/* Title */}
-            <p className="text-lg font-medium text-white">Profile Picture</p>
-
-            <div className="flex h-[30vh] items-center justify-center">
-                {userImage ? (
-                    <div className="flex flex-col items-center gap-4">
-                        {/* Avatar */}
-                        <div className="relative h-36 w-36 overflow-hidden rounded-full border border-white/20 bg-white/5">
-                            <Image
-                                src={userImage}
-                                alt="User profile picture"
-                                fill
-                                className="object-cover"
-                                sizes="144px"
-                                priority
-                            />
-                        </div>
-
-                        {/* Remove button */}
-                        <Button
-                            onClick={onRemoveProfileImage}
-                            variant="ghost"
-                            className="
-              text-sm text-white/60
-              hover:text-red-400
-              hover:bg-transparent
-              transition-colors
-            "
-                        >
-                            <X className="mr-1 h-4 w-4" />
-                            Remove photo
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center gap-3">
-                        <UploadCareButton onUpload={onUpload} />
-                        <p className="text-sm text-white/40">
-                            Upload a profile picture
-                        </p>
-                    </div>
-                )}
-            </div>
-        </div>
-    )
-
+  return (
+    <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border bg-muted">
+        {userImage ? (
+          <Image src={userImage} alt="Profile picture" fill className="object-cover" sizes="96px" />
+        ) : (
+          <UserRound className="absolute inset-0 m-auto h-10 w-10 text-muted-foreground" />
+        )}
+      </div>
+      {userImage ? (
+        <Button variant="outline" onClick={onRemoveProfileImage} disabled={pending}>
+          <Trash2 /> Remove photo
+        </Button>
+      ) : uploadsEnabled ? (
+        <UploadCareButton onUpload={onUpload} />
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Uploads are disabled. Set NEXT_PUBLIC_UPLOADCARE_PUB_KEY to enable them.
+        </p>
+      )}
+    </div>
+  )
 }
 
 export default ProfilePicture
